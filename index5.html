@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>어푸어푸! 수영장</title>
+
+<script>
+  (function(d) {
+    var config = {
+      kitId: 'caq3cwp',
+      scriptTimeout: 3000,
+      async: true
+    },
+    h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='https://use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+  })(document);
+</script>
+
+<style>
+@font-face {
+  font-family: "Maplestory OTF Light";
+  src: url("fonts/Maplestory\ OTF\ Light.otf") format("opentype");
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+/* 시작 / 엔딩 */
+.screen {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  color: white;
+  font-size: 24px;
+  background: rgba(0,0,0,0.6);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.5s;
+  z-index: 10;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+/* 게임 */
+#gameContainer{
+  width:100vw;
+  height:100vh;
+
+  display:flex;
+  display: none;
+  justify-content:center;
+  align-items:center;
+
+  background:black;
+}
+
+#gameArea{
+  position:relative;
+  margin: auto;
+
+  aspect-ratio:3508 / 4961;
+
+  width:min(
+    calc(100vh * 3508 / 4961),
+    100vw
+  );
+
+  height:min(
+    calc(100vw * 4961 / 3508),
+    100vh
+  );
+}
+
+#video{
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+}
+
+#canvas{
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+}
+
+/* UI */
+#ui {
+  position: absolute;
+  
+
+  top: 5%;
+  left: 3%;
+
+  width: 95%;
+  height: 90%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 100px;
+}
+
+#ui img {
+  width: 12%;
+  margin: 1%;
+}
+
+#uiBox {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+
+  width: 85%;
+
+  z-index: 20;
+}
+
+#uiFrame {
+  width: 100%;
+  display: block;
+}
+
+
+/* 팝업 */
+#popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(0,0,0,0.8);
+  z-index: 50;
+}
+
+#popupBox {
+  width: 85vw;        /* 화면 기준 크기 */
+  max-width: 400px;   /* 너무 커지는 것 제한 */
+
+  max-height: 80vh;   /* 화면 넘지 않게 */
+  overflow: auto;
+
+  background: white;
+  border: 5px solid #09A9C9;
+  border-radius: 20px;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  transform: translateY(-3vh); /* 살짝 위로 */
+}
+
+#popupVideo {
+  width: 100%;
+  border-radius: 10px;
+}
+
+#popupText {
+  margin-top: 15px;
+  color: black;
+  text-align: center;
+
+  font-family: "Maplestory OTF Light";
+  font-weight: 400;
+  font-style: normal;
+  font-size: 22px;
+}
+
+/* ---------------- */
+/* 오프닝 */
+/* ---------------- */
+
+#opening{
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  z-index:500;
+
+  background:black;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+#openingArea{
+  position:relative;
+
+  aspect-ratio:3508 / 4961;
+
+  width:min(
+    calc(100vh * 3508 / 4961),
+    100vw
+  );
+
+  height:min(
+    calc(100vw * 4961 / 3508),
+    100vh
+  );
+}
+
+#openingVideo{
+  position:absolute;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+}
+
+/* 처음에는 안 보임 */
+
+#titleUI{
+  display:none;
+
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+}
+
+#howUI{
+  display:none;
+
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+}
+
+/* 타이틀 */
+#titleImg{
+  position:absolute;
+
+  width:80%;
+
+  left:50%;
+  top:12%;
+
+  transform:translateX(-50%);
+  z-index:2;
+}
+
+#firstBg{
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+
+  z-index:1;
+}
+
+/* 게임 시작 */
+#startBtn{
+  position:absolute;
+
+  width:30%;
+
+  left:50%;
+  top:65%;
+
+  transform:translateX(-50%);
+
+  cursor:pointer;
+  z-index:2;
+}
+
+/* 게임 방법 */
+#howBtn{
+  position:absolute;
+
+  width:30%;
+
+  left:50%;
+  top:75%;
+
+  transform:translateX(-50%);
+
+  cursor:pointer;
+  z-index:2;
+}
+
+/* 설명 이미지 */
+
+#howPage{
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  object-fit:contain;
+  z-index:2;
+}
+
+#homeBtn {
+  position: absolute;
+
+  width: 6%;         /* 화면 기준 */
+  max-width: 70px;
+
+  top: 3%;
+  left: 3%;
+
+  cursor: pointer;
+  z-index: 1000;
+}
+
+#endScreen {
+  position: fixed;
+  inset: 0;
+  display: none;
+
+  justify-content: center;
+  align-items: center;
+  z-index: 900;
+}
+
+#endArea {
+  position: relative;
+
+  aspect-ratio: 3508 / 4961;
+
+  width: min(calc(100vh * 3508 / 4961), 100vw);
+  height: min(calc(100vw * 4961 / 3508), 100vh);
+}
+
+#finishBg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#retryBtn {
+  position: absolute;
+
+  width: 30%;
+  left: 70%;
+  bottom: 10%;
+
+  transform: translateX(-50%);
+}
+
+
+
+</style>
+</head>
+
+<body>
+
+<div id="opening">
+
+  <div id="openingArea">
+
+    <video
+      id="openingVideo"
+      src="video.mp4"
+      autoplay
+      loop
+      muted
+      playsinline>
+    </video>
+
+    <div id="titleUI">
+      <img id="firstBg" src="first.png">
+      <img id="titleImg" src="title.png">
+      <img id="startBtn" src="start.png">
+      <img id="howBtn" src="how.png">
+
+    </div>
+
+    <!-- 설명 화면 -->
+     <div id="howUI">
+      <img id="firstBg" src="first.png">
+     <img id="howPage" src="how2.png">
+
+   </div>
+
+  </div> <!-- openingArea -->
+</div> <!-- opening -->
+
+<!-- 게임 -->
+<div id="gameContainer">
+
+  <div id="gameArea">
+
+    <video
+      id="video"
+      src="video.mp4"
+      autoplay
+      loop
+      muted
+      playsinline>
+    </video>
+
+    <canvas id="canvas"></canvas>
+
+    <div id="uiBox">
+      <img src="ui_box.png" id="uiFrame">
+      <div id="ui"></div>
+    </div>
+
+    <img id="homeBtn" src="home.png">
+
+  </div>
+
+</div>
+
+<!-- 엔딩 -->
+<div id="endScreen">
+  <div id="endArea">
+    <img id="finishBg" src="finish.png">
+    <img id="retryBtn" src="retry.png">
+
+  </div>
+</div>
+
+<!-- 팝업 -->
+<div id="popup">
+  <div id="popupBox">
+    <video id="popupVideo" autoplay loop muted></video>
+    <p id="popupText"></p>
+  </div>
+</div>
+
+<!-- 배경음악 -->
+<audio id="bgm" src="bgm.mp3" loop></audio>
+<audio id="clickSound" src="click.mp3"></audio>
+<audio id="successSound" src="success.wav"></audio>
+
+
+
+<script>
+let answers = [];
+let foundCount = 0;
+let openingClicked = false;
+let gameFinished = false;
+
+const endScreen = document.getElementById("endScreen");
+const canvas = document.getElementById("canvas");
+const video = document.getElementById("video");
+const ui = document.getElementById("ui");
+const gameArea = document.getElementById("gameArea");
+
+function startGame() {
+  gameFinished = false;
+  opening.style.display = "none";
+  bgm.play();
+}
+
+function resizeCanvas() {
+
+  canvas.width = gameArea.clientWidth;
+  canvas.height = gameArea.clientHeight;
+
+}
+
+const popup = document.getElementById("popup");
+const popupVideo = document.getElementById("popupVideo");
+const popupText = document.getElementById("popupText");
+
+const opening = document.getElementById("opening");
+const titleUI = document.getElementById("titleUI");
+const howUI = document.getElementById("howUI");
+const startBtn = document.getElementById("startBtn");
+const howBtn = document.getElementById("howBtn");
+
+const clickSound = document.getElementById("clickSound");
+clickSound.volume = 0.2;
+function playClick() {
+  clickSound.currentTime = 0;
+  clickSound.play();
+}
+
+const bgm = document.getElementById("bgm");
+bgm.volume = 0.3; // 30% 볼륨
+
+startBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  playClick();
+
+  bgm.play();   // 🔥 여기서 시작
+
+  opening.style.display = "none";
+  startGame();
+});
+
+const successSound = document.getElementById("successSound");
+successSound.volume = 0.3;
+
+
+
+howUI.addEventListener("mousemove", (e) => {
+
+  const rect = howUI.getBoundingClientRect();
+
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+
+  debugText.innerText =
+    `x:${x.toFixed(3)} y:${y.toFixed(3)}`;
+
+});
+
+opening.addEventListener("click", () => {
+
+  if(openingClicked) return;
+
+  openingClicked = true;
+
+  titleUI.style.display = "block";
+  howUI.style.display = "none";
+
+});
+
+howBtn.addEventListener("click",(e)=>{
+
+  e.stopPropagation();
+  playClick();
+
+  titleUI.style.display = "none";
+
+  howUI.style.display = "block";
+
+});
+
+howUI.addEventListener("click",(e)=>{
+
+  const rect = howUI.getBoundingClientRect();
+
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+
+  if(
+  x > 0.815 &&
+  x < 0.870 &&
+  y > 0.255 &&
+  y < 0.295
+){
+  playClick();
+  howUI.style.display = "none";
+  titleUI.style.display = "block";
+}
+  
+
+});
+
+
+
+
+
+const debugText = document.createElement("div");
+
+debugText.style.position = "fixed";
+debugText.style.top = "10px";
+debugText.style.left = "10px";
+debugText.style.color = "white";
+debugText.style.background = "rgba(0,0,0,0.7)";
+debugText.style.padding = "5px 10px";
+debugText.style.fontSize = "14px";
+debugText.style.zIndex = "9999";
+
+document.body.appendChild(debugText);
+
+/*
+canvas.addEventListener("mousemove", (e) => {
+
+  const rect = gameArea.getBoundingClientRect();
+
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+
+  debugText.innerText =
+    `x: ${x.toFixed(3)}\ny: ${y.toFixed(3)}`;
+});
+*/
+
+
+
+/* 전체 데이터 */
+const allAnswers = [
+  {x:0.500, y:0.265, r:0.05, text:"선생님 다리에 매달리기 놀이!", video:"video/a_01.mp4", id:"item0", icon:"png/icon_01.png"},
+  {x:0.430, y:0.330, r:0.05, text:"짐볼 위에서 중심 잡기 훈련!", video:"video/a_02.mp4", id:"item1", icon:"png/icon_02.png"},
+  {x:0.315, y:0.280, r:0.05, text:"거북이 등딱지 같은 헬퍼!\n 물에 떠있도록 도와준다.", video:"video/a_03.mp4", id:"item2", icon:"png/icon_03.png"},
+  {x:0.120, y:0.275, r:0.05, text:"음파음파! 호흡법을 연습하자", video:"video/a_04.mp4", id:"item3", icon:"png/icon_04.png"},
+  {x:0.250, y:0.360, r:0.05, text:"매달 마지막 수업은 자유시간!", video:"video/a_05.mp4", id:"item4", icon:"png/icon_05.png"},
+  {x:0.100, y:0.405, r:0.05, text:"선생님들은 항상 슈트를 반만 입고 계셔...", video:"video/a_06.mp4", id:"item5", icon:"png/icon_06.png"},
+  {x:0.050, y:0.170, r:0.05, text:"수업이 끝나면 킥판은 보관대에 잘 정리합시다.", video:"video/a_07.mp4", id:"item6", icon:"png/icon_07.png"},
+  {x:0.575, y:0.175, r:0.05, text:"수영장에 들어오기 전엔 꼭! 씻고 옵시다!!", video:"video/a_08.mp4", id:"item7", icon:"png/icon_08.png"},
+  {x:0.740, y:0.260, r:0.05, text:"뛰지 마시오!", video:"video/a_09.mp4", id:"item8", icon:"png/icon_09.png"},
+  {x:0.825, y:0.310, r:0.05, text:"미끄러움 주의!", video:"video/a_10.mp4", id:"item9", icon:"png/icon_10.png"},
+  {x:0.685, y:0.330, r:0.05, text:"안전요원분들이 위험한 상황을 발견하면 부시는 호루라기! 혹시 난가? 항상 헷갈린다ㅠㅠ", video:"video/a_10.mp4", id:"item10", icon:"png/icon_11.png"},
+  {x:0.575, y:0.435, r:0.05, text:"물에 들어가기 전엔 발을 씻자", video:"video/a_12.mp4", id:"item11", icon:"png/icon_12.png"},
+  {x:0.885, y:0.380, r:0.05, text:"준비 운동은 필수!", video:"video/a_13.mp4", id:"item12", icon:"png/icon_13.png"},
+  {x:0.175, y:0.535, r:0.05, text:"배영 출발할 때 너무 위에서부터 누우면\n 얼굴까지 잠겨버려 물을 먹게 된다ㅠ.ㅠ", video:"video/a_14.mp4", id:"item13", icon:"png/icon_14.png"},
+  {x:0.395, y:0.505, r:0.05, text:"배영 할 때 직선으로 어떻게 가지?ㅠㅠ", video:"video/a_15.mp4", id:"item14", icon:"png/icon_15.png"},
+  {x:0.570, y:0.525, r:0.10, text:"속도 맞추기 어려워...", video:"video/a_16.mp4", id:"item15", icon:"png/icon_16.png"},
+  {x:0.100, y:0.490, r:0.05, text:"아야ㅠㅠ 배영 마지막 거리 계산 잘 하자...!!", video:"video/a_17.mp4", id:"item16", icon:"png/icon_17.png"},
+  {x:0.915, y:0.455, r:0.05, text:"물에 들어가고 나갈 땐 사다리를 이용해요.", video:"video/a_18.mp4", id:"item17", icon:"png/icon_18.png"},
+  {x:0.050, y:0.640, r:0.05, text:"자유 수영 시간은 수친들과의 수다 시간~~^^\n (*이러시면 안 됩니다*)", video:"video/a_19.mp4", id:"item18", icon:"png/icon_19.png"},
+  {x:0.300, y:0.635, r:0.10, text:"접영 팔 동작 연습~!", video:"video/a_20.mp4", id:"item19", icon:"png/icon_20.png"},
+  {x:0.590, y:0.575, r:0.05, text:"땅콩처럼 생긴 풀부이!\n 균형잡기 연습할 때 자꾸 날아간다ㅠㅠ", video:"video/a_21.mp4", id:"item20", icon:"png/icon_21.png"},
+  {x:0.640, y:0.570, r:0.05, text:"추월은 절대 금지! 답답해도 우선 기다려요.", video:"video/a_22.mp4", id:"item21", icon:"png/icon_22.png"},
+  {x:0.910, y:0.580, r:0.05, text:'수영장에서 제일 많이 하는 말: "먼저 가세요ㅠㅠ"\n 제일 많이 듣는 말: "젊은 사람이 앞에 가야지~!" ', video:"video/a_23.mp4", id:"item22", icon:"png/icon_23.png"},
+  {x:0.835, y:0.680, r:0.05, text:"너무 열심히 했나... 수모가 벗겨졌어", video:"video/a_24.mp4", id:"item23", icon:"png/icon_24.png"},
+  {x:0.525, y:0.655, r:0.05, text:"어푸푸! 숨 쉬다가 옆레인에서 튀는 물 내가 다 먹네", video:"video/a_25.mp4", id:"item24", icon:"png/icon_25.png"},
+
+  {x:0.315, y:0.720, r:0.05, text:"평영 발차기에 맞으면 너무 아파ㅠㅠ", video:"video/a_27.mp4", id:"item26", icon:"png/icon_27.png"},
+  {x:0.060, y:0.715, r:0.05, text:"물안경에 김이 자꾸 서린다;;", video:"video/a_28.mp4", id:"item27", icon:"png/icon_28.png"},
+  {x:0.640, y:0.735, r:0.05, text:"한팔 접영!", video:"video/a_29.mp4", id:"item28", icon:"png/icon_29.png"},
+  {x:0.050, y:0.760, r:0.05, text:"쉴 때는 구석에서 쉬기!", video:"video/a_30.mp4", id:"item29", icon:"png/icon_30.png"},
+  {x:0.215, y:0.860, r:0.10, text:"킥판 떠내려가요~", video:"video/a_31.mp4", id:"item30", icon:"png/icon_31.png"},
+  {x:0.080, y:0.835, r:0.05, text:"설명 들을 때 동작 따라하는 사람~?", video:"video/a_32.mp4", id:"item31", icon:"png/icon_32.png"},
+  {x:0.115, y:0.790, r:0.05, text:"설명 듣다 보면 왜 트름이 나올까?", video:"video/a_33.mp4", id:"item32", icon:"png/icon_33.png"},
+  {x:0.950, y:0.780, r:0.05, text:"코와 입에 들어간 물은 바깥에 뱉기!", video:"video/a_34.mp4", id:"item33", icon:"png/icon_34.png"},
+  {x:0.815, y:0.790, r:0.05, text:"킥판 잡고 발차기 워밍업!", video:"video/a_35.mp4", id:"item34", icon:"png/icon_35.png"},
+  {x:0.525, y:0.850, r:0.10, text:"자유형!", video:"video/a_36.mp4", id:"item35", icon:"png/icon_36.png"},
+  {x:0.080, y:0.910, r:0.05, text:"보글보글 잠수 놀이~", video:"video/a_37.mp4", id:"item36", icon:"png/icon_37.png"},
+  {x:0.345, y:0.890, r:0.05, text:"레인에 기대지 마시오!", video:"video/a_38.mp4", id:"item37", icon:"png/icon_38.png"},
+  {x:0.555, y:0.880, r:0.05, text:"레인 건너갈 땐 아래로~", video:"video/a_39.mp4", id:"item38", icon:"png/icon_39.png"},
+  {x:0.670, y:0.880, r:0.05, text:"래인 건너갈 땐 위로~", video:"video/a_40.mp4", id:"item39", icon:"png/icon_40.png"},
+  {x:0.925, y:0.900, r:0.05, text:"수업 마무리는 다같이 손잡고 파이팅하며!", video:"video/a_41.mp4", id:"item40", icon:"png/icon_41.png"},
+  {x:0.810, y:0.940, r:0.05, text:"저만 두고 먼저 가지 마세요ㅠㅠ", video:"video/a_42.mp4", id:"item41", icon:"png/icon_42.png"},
+  {x:0.415, y:0.975, r:0.05, text:"안전요원도 수영인!\n 가끔 자유 수영할 때 자세를 알려주신다ㅎㅎ", video:"video/a_43.mp4", id:"item42", icon:"png/icon_43.png"},
+  {x:0.200, y:0.965, r:0.05, text:"왕초보 필수 코스, 발차기 연습!", video:"video/a_44.mp4", id:"item43", icon:"png/icon_44.png"}
+];
+
+/* 시작 */
+function startGame() {
+
+  opening.style.display = "none";
+  document.getElementById("gameContainer").style.display = "flex";
+
+  endScreen.style.display = "none";
+
+  ui.style.display = "block";
+  canvas.style.display = "block";
+  document.getElementById("homeBtn").style.display = "block";
+
+  playClick();
+
+  pickRandomAnswers();
+  setupUI();
+
+  setTimeout(() => {
+    resizeCanvas();
+  }, 50);
+}
+
+document.getElementById("homeBtn").addEventListener("click", () => {
+  playClick();
+  goIntro();
+
+});
+
+document.getElementById("retryBtn").addEventListener("click", () => {
+  playClick();
+  gameFinished = false;
+  bgm.currentTime = 0;
+  bgm.play();
+
+  endScreen.style.display = "none";
+  ui.style.display = "block";
+  video.style.display = "block";
+  document.getElementById("homeBtn").style.display = "block";
+  canvas.style.display = "block";
+  startGame();
+
+});
+
+
+/* 랜덤 */
+function pickRandomAnswers() {
+  const shuffled = [...allAnswers].sort(() => Math.random() - 0.5);
+  answers = shuffled.slice(0, 7);
+  foundCount = 0;
+
+  answers.forEach(a => {
+    a.found = false;
+  });
+}
+
+/* UI */
+function setupUI() {
+  ui.innerHTML = "";
+  answers.forEach(a => {
+    const img = document.createElement("img");
+    img.id = a.id;
+    img.src = a.icon;
+    ui.appendChild(img);
+  });
+}
+
+/* 캔버스 (영상 기준으로 맞춤) */
+function resizeCanvas() {
+
+  canvas.width = gameArea.clientWidth;
+  canvas.height = gameArea.clientHeight;
+
+}
+video.addEventListener("loadeddata", resizeCanvas);
+window.addEventListener("resize", resizeCanvas);
+
+/* 클릭 (영상 기준 좌표) */
+canvas.addEventListener("click", (e) => {
+
+  const rect = gameArea.getBoundingClientRect();
+
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+
+  answers.forEach(a => {
+    if (a.found) return;
+
+    const dx = x - a.x;
+    const dy = y - a.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist < a.r) {
+      clickSound.currentTime = 0;
+      clickSound.play();
+      a.found = true;
+      foundCount++;
+
+      
+
+      const img = document.getElementById(a.id);
+      if (img) img.style.opacity = 0.3;
+
+      showPopup(a);
+
+      if (foundCount === answers.length) {
+        gameFinished = true;
+      }
+    }
+  });
+});
+
+/* 팝업 */
+function showPopup(a) {
+  popupVideo.src = a.video;
+  popupVideo.currentTime = 0;
+  popupText.innerText = a.text;
+
+  popup.style.display = "flex";
+}
+
+/* 닫기 */
+popup.addEventListener("click", () => {
+  popup.style.display = "none";
+
+  if (gameFinished) {
+
+    ui.style.display = "none";
+    canvas.style.display = "none";
+
+    bgm.pause();
+    bgm.currentTime = 0;
+
+    successSound.currentTime = 0;
+    successSound.play();
+
+    setTimeout(() => {
+      endScreen.style.display = "flex";
+    }, 100);
+  }
+});
+
+/* 다시 */
+function restart() {
+  location.reload();
+}
+
+function goIntro() {
+
+  opening.style.display = "flex";
+
+  titleUI.style.display = "none";
+  howUI.style.display = "none";
+  endScreen.style.display = "none";
+  bgm.pause();
+  bgm.currentTime = 0;
+
+  document.getElementById("gameContainer").style.display = "none";
+
+  // ⭐ 게임 UI 복구 (핵심)
+  ui.style.display = "block";
+  canvas.style.display = "block";
+  document.getElementById("homeBtn").style.display = "block";
+  video.style.display = "block";
+
+  // ⭐ 상태 초기화
+  openingClicked = false;
+  answers = [];
+  foundCount = 0;
+  gameFinished = false;
+}
+</script>
+
+</body>
+</html>
